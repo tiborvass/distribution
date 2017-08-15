@@ -6,14 +6,13 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/docker/distribution"
 	"github.com/docker/distribution/registry/api/errcode"
 	"github.com/docker/distribution/registry/api/v2"
 	"github.com/docker/distribution/testutil"
 )
 
-// Test implements distribution.BlobWriter
-var _ distribution.BlobWriter = &httpBlobUpload{}
+// Test implements BlobWriter
+var _ BlobWriter = &httpBlobUpload{}
 
 func TestUploadReadFrom(t *testing.T) {
 	_, b := newRandomBlob(64)
@@ -152,8 +151,8 @@ func TestUploadReadFrom(t *testing.T) {
 	if err == nil {
 		t.Fatalf("Expected error when not found")
 	}
-	if err != distribution.ErrBlobUploadUnknown {
-		t.Fatalf("Wrong error thrown: %s, expected %s", err, distribution.ErrBlobUploadUnknown)
+	if err != ErrBlobUploadUnknown {
+		t.Fatalf("Wrong error thrown: %s, expected %s", err, ErrBlobUploadUnknown)
 	}
 
 	// 400 valid json

@@ -8,12 +8,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"time"
-
-	"github.com/docker/distribution"
 )
 
 type httpBlobUpload struct {
-	statter distribution.BlobStatter
+	statter BlobStatter
 	client  *http.Client
 
 	uuid      string
@@ -30,7 +28,7 @@ func (hbu *httpBlobUpload) Reader() (io.ReadCloser, error) {
 
 func (hbu *httpBlobUpload) handleErrorResponse(resp *http.Response) error {
 	if resp.StatusCode == http.StatusNotFound {
-		return distribution.ErrBlobUploadUnknown
+		return ErrBlobUploadUnknown
 	}
 	return HandleErrorResponse(resp)
 }
@@ -115,11 +113,11 @@ func (hbu *httpBlobUpload) StartedAt() time.Time {
 	return hbu.startedAt
 }
 
-func (hbu *httpBlobUpload) Commit(ctx context.Context, desc distribution.Descriptor) (distribution.Descriptor, error) {
+func (hbu *httpBlobUpload) Commit(ctx context.Context, desc Descriptor) (Descriptor, error) {
 	// TODO(dmcgowan): Check if already finished, if so just fetch
 	req, err := http.NewRequest("PUT", hbu.location, nil)
 	if err != nil {
-		return distribution.Descriptor{}, err
+		return Descriptor{}, err
 	}
 
 	values := req.URL.Query()
@@ -128,12 +126,12 @@ func (hbu *httpBlobUpload) Commit(ctx context.Context, desc distribution.Descrip
 
 	resp, err := hbu.client.Do(req)
 	if err != nil {
-		return distribution.Descriptor{}, err
+		return Descriptor{}, err
 	}
 	defer resp.Body.Close()
 
 	if !SuccessStatus(resp.StatusCode) {
-		return distribution.Descriptor{}, hbu.handleErrorResponse(resp)
+		return Descriptor{}, hbu.handleErrorResponse(resp)
 	}
 
 	return hbu.statter.Stat(ctx, desc.Digest)

@@ -14,7 +14,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/distribution"
 	"github.com/docker/distribution/context"
 	"github.com/docker/distribution/manifest"
 	"github.com/docker/distribution/manifest/schema1"
@@ -350,7 +349,7 @@ func TestBlobUploadChunked(t *testing.T) {
 		}
 	}
 
-	blob, err := upload.Commit(ctx, distribution.Descriptor{
+	blob, err := upload.Commit(ctx, Descriptor{
 		Digest: dgst,
 		Size:   int64(len(b1)),
 	})
@@ -458,7 +457,7 @@ func TestBlobUploadMonolithic(t *testing.T) {
 		t.Fatalf("Unexpected ReadFrom length: %d; expected: %d", n, len(b1))
 	}
 
-	blob, err := upload.Commit(ctx, distribution.Descriptor{
+	blob, err := upload.Commit(ctx, Descriptor{
 		Digest: dgst,
 		Size:   int64(len(b1)),
 	})
@@ -524,7 +523,7 @@ func TestBlobMount(t *testing.T) {
 		t.Fatalf("Expected blob writer to be nil, was %v", bw)
 	}
 
-	if ebm, ok := err.(distribution.ErrBlobMounted); ok {
+	if ebm, ok := err.(ErrBlobMounted); ok {
 		if ebm.From.Digest() != dgst {
 			t.Fatalf("Unexpected digest: %s, expected %s", ebm.From.Digest(), dgst)
 		}
@@ -609,7 +608,7 @@ func addTestManifestWithEtag(repo reference.Named, reference string, content []b
 
 func contentDigestString(mediatype string, content []byte) string {
 	if mediatype == schema1.MediaTypeSignedManifest {
-		m, _, _ := distribution.UnmarshalManifest(mediatype, content)
+		m, _, _ := UnmarshalManifest(mediatype, content)
 		content = m.(*schema1.SignedManifest).Canonical
 	}
 	return digest.Canonical.FromBytes(content).String()
@@ -723,7 +722,7 @@ func TestV1ManifestFetch(t *testing.T) {
 	}
 
 	var contentDigest digest.Digest
-	manifest, err = ms.Get(ctx, dgst, distribution.WithTag("latest"), ReturnContentDigest(&contentDigest))
+	manifest, err = ms.Get(ctx, dgst, WithTag("latest"), ReturnContentDigest(&contentDigest))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -740,7 +739,7 @@ func TestV1ManifestFetch(t *testing.T) {
 		t.Fatalf("Unexpected returned content digest %v, expected %v", contentDigest, dgst)
 	}
 
-	manifest, err = ms.Get(ctx, dgst, distribution.WithTag("badcontenttype"))
+	manifest, err = ms.Get(ctx, dgst, WithTag("badcontenttype"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -778,8 +777,8 @@ func TestManifestFetchWithEtag(t *testing.T) {
 	if !ok {
 		panic("wrong type for client manifest service")
 	}
-	_, err = clientManifestService.Get(ctx, d1, distribution.WithTag("latest"), AddEtagToTag("latest", d1.String()))
-	if err != distribution.ErrManifestNotModified {
+	_, err = clientManifestService.Get(ctx, d1, WithTag("latest"), AddEtagToTag("latest", d1.String()))
+	if err != ErrManifestNotModified {
 		t.Fatal(err)
 	}
 }
@@ -878,7 +877,7 @@ func TestManifestPut(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if _, err := ms.Put(ctx, m1, distribution.WithTag(m1.Tag)); err != nil {
+	if _, err := ms.Put(ctx, m1, WithTag(m1.Tag)); err != nil {
 		t.Fatal(err)
 	}
 
